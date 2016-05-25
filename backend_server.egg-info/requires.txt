@@ -1,4 +1,0 @@
-tornado
-syringe
-bcrypt
-pymongo
