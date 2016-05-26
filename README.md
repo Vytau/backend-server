@@ -19,6 +19,7 @@ The environment can be set up using::
     $ virtualenv /tmp/<name>
     $ source /tmp/<name>/bin/activate
     $ pip install pip --upgrade
+    $ pip install setuptools --upgrade
 
 
 Python3
@@ -29,16 +30,22 @@ The environment can be set up using:
 
 .. code-block:: sh
 
-    $ export VENV=/tmp/venv-$RANDOM
-    $ virtualenv $VENV
-    $ source $VENV/bin/activate
+    $ virtualenv -p python3 /tmp/<name>
+    $ source /tmp/<name>/bin/activate
     $ pip install pip --upgrade
     $ pip install setuptools --upgrade
 
 
-Next install this project using ``pip``::
+Go to project directory and install this project using ``pip``::
 
     $ pip install -e .
+
+
+Run project
+===========
+Go to project directory and run following command.
+
+	$ python src/main.py
 
 
 Database
