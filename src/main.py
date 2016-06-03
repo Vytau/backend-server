@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import socket
 import base64
 import uuid
-# import M2Crypto
 import tornado
 from tornado import httpserver, netutil
 import tornado.wsgi
@@ -13,6 +12,7 @@ from tornado.options import define
 from tornado.options import options
 from pymongo import MongoClient
 
+from src.mongolayer import mongodb as db_handlers
 from src import services
 from src import api
 
@@ -44,13 +44,16 @@ def init_services():
     """
     services.MongoDbService()
 
+def init_db_handlers(app):
+    db_handlers.MongoDbHandler(app)
+
 
 class Application(tornado.wsgi.WSGIApplication):
     def __init__(self, **kwars):
         handlers = [
-            url(r"/", api.BaseHandler)
+            url(r"/", api.BaseHandler),
             # url(r"/login", api.LoginHandler),
-            # url(r"/register", api.RegisterHandler),
+            url(r"/api/register", api.RegisterHandler)
             # url(r"/logout", api.LogoutHandler)
 
         ]
@@ -67,7 +70,7 @@ class Application(tornado.wsgi.WSGIApplication):
         if 'db' in kwars:
             self.syncdb = self.syncconnection[kwars['db']]
         else:
-            self.syncdb = self.syncconnection['flpke2-db']
+            self.syncdb = self.syncconnection['yo-db']
 
     def gen_uniq_id(self, num_bytes=16):
         return base64.b64encode(uuid.uuid4().bytes + uuid.uuid4().bytes)
@@ -77,8 +80,10 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
     sockets = tornado.netutil.bind_sockets(options.port, address=options.address)
     # tornado.process.fork_processes(0) does not work on windows
+    app = Application()
     init_services()
-    server = httpserver.HTTPServer(Application())
+    init_db_handlers(app)
+    server = httpserver.HTTPServer(app)
     server.add_sockets(sockets)
 
     print('Web server is listing at :' + options.address + ':' + str(options.port))

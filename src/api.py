@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 import syringe
-import bcrypt
+# import bcrypt
 import functools
 import logging
 from bson import ObjectId
@@ -74,3 +74,30 @@ class BaseHandler(tornado.web.RequestHandler):
             return tornado.escape.json_decode(user_json)
         else:
             return None
+
+
+class RegisterHandler(BaseHandler):
+    mongodb_service = syringe.inject('mongodb-service')
+
+    def get(self):
+        self.render('register.html')
+
+    def post(self):
+        email = self.get_argument('email', '')
+        name = self.get_argument('name', '')
+        if self.mongodb_service.is_user_exists(email):
+            raise tornado.web.HTTPError(409, 'User already exists, '
+                                             'aborting')
+        password = self.get_argument('password', '').encode('utf-8')
+        if self.mongodb_service.create_user(
+            name=name,
+            email=email,
+            password=password,
+            db=self.application.syncdb
+        ):
+            # self.set_current_user(email)
+            print("user has been registered")
+        else:
+            raise tornado.web.HTTPError(400, 'Registration Failed, '
+                                             'aborting')
+        self.finish()
