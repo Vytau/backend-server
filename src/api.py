@@ -125,3 +125,9 @@ class LoginHandler(BaseHandler):
             self.set_secure_cookie('flash', "Login incorrect")
             raise tornado.web.HTTPError(400, 'Loign Failed, '
                                              'aborting')
+
+
+class LogoutHandler(BaseHandler):
+    def post(self):
+        self.clear_cookie("user")
+        self.finish()
