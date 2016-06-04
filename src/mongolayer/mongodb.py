@@ -27,13 +27,12 @@ class MongoDbHandler(object):
         hashed_pass = kwargs['hashed_pass']
 
         try:
-            user = self.db['users'].save(db_models.User(
+            user = self.db['users'].save(db_models.CustomModel(
                 user_name=name,
                 email=email,
                 password_hash=hashed_pass,
                 user_creation_date=datetime.datetime.now()
             ))
-            # print(user)
             return True
         except:
             print(traceback.format_exc())
@@ -50,6 +49,44 @@ class MongoDbHandler(object):
             else:
                 return None
 
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def create_new_directory(self, **kwargs):
+        """
+        Creates new directory.
+        """
+        folder_name = kwargs['folder_name']
+        user_id = kwargs['user_id']
+        parent_dir_id = kwargs['parent_dir_id']
+        contributors = kwargs['contributors'] # list of user
+
+        try:
+            dir_ = self.db['directories'].save(db_models.CustomModel(
+                folder_name=folder_name,
+                owner_id=user_id,
+                contributors=contributors,
+                parent_dir_id=parent_dir_id,
+                dir_creation_date=datetime.datetime.now()
+            ))
+            return self.get_directory_by_dir_id(dir_)
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def get_directory_by_dir_id(self, dir_id):
+        """
+        Get directory by dir id
+        """
+        try:
+            dir_ = self.db['directories'].find_one({
+                '_id': ObjectId(dir_id)
+            })
+            if dir_:
+                return dir_
+            else:
+                return None
         except:
             print(traceback.format_exc())
             raise

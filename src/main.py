@@ -43,6 +43,7 @@ def init_services():
 
     """
     services.UserService()
+    services.DirectoryService()
 
 def init_db_handlers(app):
     db_handlers.MongoDbHandler(app)
@@ -53,8 +54,9 @@ class Application(tornado.wsgi.WSGIApplication):
         handlers = [
             url(r"/", api.BaseHandler),
             url(r"/api/login", api.LoginHandler),
-            url(r"/api/register", api.RegisterHandler)
-            # url(r"/logout", api.LogoutHandler)
+            url(r"/api/register", api.RegisterHandler),
+            url(r"/logout", api.LogoutHandler),
+            url(r"/api/dir/([\w]+)", api.DirectoryHandler)
         ]
 
         settings = {

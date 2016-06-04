@@ -131,3 +131,25 @@ class LogoutHandler(BaseHandler):
     def post(self):
         self.clear_cookie("user")
         self.finish()
+
+
+class DirectoryHandler(BaseHandler):
+    dir_service = syringe.inject('directory-service')
+
+    def post(self, user_id):
+        self.set_header('Content-Type', 'application/json')
+        
+        data = tornado.escape.json_decode(self.request.body)
+        dir_ = self.dir_service.create_new_directory(
+            user_id=user_id,
+            folder_name=data['folder_name'],
+            parent_dir_id=data['parent_dir_id'],
+            contributors=data['contributors']
+        )
+        if dir_:
+            self.write(json.dumps(dir_))
+        else:
+            self.send_error(
+                400,
+                message='Directory Creation failed.'
+            )

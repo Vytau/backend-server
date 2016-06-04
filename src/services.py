@@ -33,3 +33,17 @@ class UserService(object):
             return self.mongodb_handler.get_user_by_email(email)
         except:
             raise
+
+
+@syringe.provides('directory-service')
+class DirectoryService(object):
+    """
+    The service layer for :class:`MongoDbHandler.`
+    """
+    mongodb_handler = syringe.inject('mongodb-handler')
+
+    def create_new_directory(self, **kwargs):
+        try:
+            return self.mongodb_handler.create_new_directory(**kwargs)
+        except:
+            raise
