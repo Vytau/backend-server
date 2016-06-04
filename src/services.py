@@ -9,8 +9,8 @@ class KeyboardInterruptError(Exception):
     pass
 
 
-@syringe.provides('mongodb-service')
-class MongoDbService(object):
+@syringe.provides('user-service')
+class UserService(object):
     """
     The service layer for :class:`MongoDbHandler.`
     """
@@ -22,12 +22,14 @@ class MongoDbService(object):
             hashed_pass = bcrypt.hashpw(kwargs['password'], bcrypt.gensalt(8))
             del kwargs['password']
             kwargs['hashed_pass'] = hashed_pass
-            return self.mongodb_handler.create_user(**kwargs)
+            if self.mongodb_handler.create_user(**kwargs):
+                return self.get_user_by_email(kwargs['email'])
+            return False
         except:
             raise
 
-    def is_user_exists(self, email):
+    def get_user_by_email(self, email):
         try:
-            return self.mongodb_handler.is_user_exists(email)
+            return self.mongodb_handler.get_user_by_email(email)
         except:
             raise

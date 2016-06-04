@@ -27,27 +27,28 @@ class MongoDbHandler(object):
         hashed_pass = kwargs['hashed_pass']
 
         try:
-            self.db['users'].save(db_models.User(
+            user = self.db['users'].save(db_models.User(
                 user_name=name,
                 email=email,
                 password_hash=hashed_pass,
                 user_creation_date=datetime.datetime.now()
             ))
+            # print(user)
             return True
         except:
             print(traceback.format_exc())
             raise
 
-    def is_user_exists(self, email):
+    def get_user_by_email(self, email):
         """
         Check if users already exists
         """
         try:
             user = self.db['users'].find_one({'email': email})
             if user:
-                return True
+                return user
             else:
-                return False
+                return None
 
         except:
             print(traceback.format_exc())

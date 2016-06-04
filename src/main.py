@@ -42,7 +42,7 @@ def init_services():
     Initialise the services used by the core framework.
 
     """
-    services.MongoDbService()
+    services.UserService()
 
 def init_db_handlers(app):
     db_handlers.MongoDbHandler(app)
@@ -52,10 +52,9 @@ class Application(tornado.wsgi.WSGIApplication):
     def __init__(self, **kwars):
         handlers = [
             url(r"/", api.BaseHandler),
-            # url(r"/login", api.LoginHandler),
+            url(r"/api/login", api.LoginHandler),
             url(r"/api/register", api.RegisterHandler)
             # url(r"/logout", api.LogoutHandler)
-
         ]
 
         settings = {

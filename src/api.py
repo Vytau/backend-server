@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 import syringe
-# import bcrypt
+import bcrypt
 import functools
 import logging
 from bson import ObjectId
@@ -55,6 +55,12 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_login_url(self):
         return u"/login"
 
+    def set_current_user(self, user):
+        if user:
+            self.set_secure_cookie("user", tornado.escape.json_encode(user), 10)
+        else:
+            self.clear_cookie("user")
+
     def write_error(self, status_code, **kwargs):
         if 'message' not in kwargs:
             kwargs['message'] = 'Unknown Error: '
@@ -63,10 +69,7 @@ class BaseHandler(tornado.web.RequestHandler):
     # @authenticated_async
     def get(self):
         if not self.current_user:
-            print('you are differnt user')
-        else:
-            print('current' + self.current_user)
-        self.render("login.html")
+            self.render("login.html")
 
     def get_current_user(self):
         user_json = self.get_secure_cookie("user")
@@ -77,27 +80,48 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class RegisterHandler(BaseHandler):
-    mongodb_service = syringe.inject('mongodb-service')
-
-    def get(self):
-        self.render('register.html')
+    user_service = syringe.inject('user-service')
 
     def post(self):
+        self.set_header('Content-Type', 'application/json')
         email = self.get_argument('email', '')
         name = self.get_argument('name', '')
-        if self.mongodb_service.is_user_exists(email):
+        if self.user_service.get_user_by_email(email):
             raise tornado.web.HTTPError(409, 'User already exists, '
                                              'aborting')
         password = self.get_argument('password', '').encode('utf-8')
-        if self.mongodb_service.create_user(
+        user = self.user_service.create_user(
             name=name,
             email=email,
             password=password,
             db=self.application.syncdb
-        ):
-            # self.set_current_user(email)
-            print("user has been registered")
+        )
+        if user:
+            self.set_current_user(email)
+            del user['password_hash']
+            self.write(json.dumps(user))
         else:
             raise tornado.web.HTTPError(400, 'Registration Failed, '
                                              'aborting')
         self.finish()
+
+
+class LoginHandler(BaseHandler):
+    user_service = syringe.inject('user-service')
+
+    @gen.coroutine
+    def post(self):
+        self.set_header('Content-Type', 'application/json')
+        email = self.get_argument('email', '')
+        password = self.get_argument('password', '').encode('utf-8')
+        user = self.user_service.get_user_by_email(email)
+
+        # Warning bcrypt will block IO loop:
+        if user and user['password_hash'] and bcrypt.hashpw(password, user['password_hash']) == user['password_hash']:
+            self.set_current_user(email)
+            del user['password_hash']
+            self.write(json.dumps(user))
+        else:
+            self.set_secure_cookie('flash', "Login incorrect")
+            raise tornado.web.HTTPError(400, 'Loign Failed, '
+                                             'aborting')
