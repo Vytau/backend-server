@@ -33,6 +33,16 @@ class MongoDbHandler(object):
                 password_hash=hashed_pass,
                 user_creation_date=datetime.datetime.now()
             ))
+
+            # set up home directory for newley created user.
+            dir_ = self.create_new_directory(
+                user_id=str(user),
+                folder_name="Home",
+                parent_dir_id=str(user),
+                contributors=[]
+            )
+            self.create_home_directory(str(dir_['_id']), str(user))
+
             return True
         except:
             print(traceback.format_exc())
@@ -68,9 +78,26 @@ class MongoDbHandler(object):
                 owner_id=user_id,
                 contributors=contributors,
                 parent_dir_id=parent_dir_id,
+                deleted=False,
                 dir_creation_date=datetime.datetime.now()
             ))
             return self.get_directory_by_dir_id(dir_)
+        except:
+            print(traceback.format_exc())
+            raise
+
+
+    def create_home_directory(self, user_id, dir_id):
+        """
+        Create home directory for every new user.
+        """
+        try:
+            dir_ = self.db['homedirectories'].save(db_models.CustomModel(
+                user_id=user_id,
+                dir_id=dir_id,
+                dir_creation_date=datetime.datetime.now()
+            ))
+            return True
         except:
             print(traceback.format_exc())
             raise
@@ -87,6 +114,24 @@ class MongoDbHandler(object):
                 return dir_
             else:
                 return None
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def list_content_by_dir_id(self, **kwargs):
+        """
+        List content of given directory.
+        """
+        dir_id = kwargs['dir_id']
+        user_id = kwargs['user_id']
+        try:
+            content = self.db['directories'].find({'deleted': False} and
+                                                {owner_id: user_id})
+            if content:
+                return content
+            else:
+                return None
+
         except:
             print(traceback.format_exc())
             raise

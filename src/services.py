@@ -47,3 +47,9 @@ class DirectoryService(object):
             return self.mongodb_handler.create_new_directory(**kwargs)
         except:
             raise
+
+    def list_content_by_dir_id(self, **kwargs):
+        try:
+            return self.mongodb_handler.list_content_by_dir_id(**kwargs)
+        except:
+            raise

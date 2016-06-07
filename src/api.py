@@ -46,8 +46,10 @@ class BaseHandler(tornado.web.RequestHandler):
         super(BaseHandler, self).__init__(application, request)
 
     def set_default_headers(self):
+        # self.set_header("Access-Control-Allow-Origin", self.request.headers['Origin']
+        #                 self.request.headers.get("X-Real-IP") or self.request.remote_ip)
         self.set_header("Access-Control-Allow-Origin",
-                        self.request.headers.get("X-Real-IP") or self.request.remote_ip)
+                            self.request.headers['Origin'])
         self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
         self.set_header("Access-Control-Allow-Headers", "accept")
@@ -138,7 +140,7 @@ class DirectoryHandler(BaseHandler):
 
     def post(self, user_id):
         self.set_header('Content-Type', 'application/json')
-        
+
         data = tornado.escape.json_decode(self.request.body)
         dir_ = self.dir_service.create_new_directory(
             user_id=user_id,
@@ -153,3 +155,6 @@ class DirectoryHandler(BaseHandler):
                 400,
                 message='Directory Creation failed.'
             )
+
+    def get(self, user_id, dir_id):
+        print('under development')
