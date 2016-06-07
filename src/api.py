@@ -49,7 +49,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # self.set_header("Access-Control-Allow-Origin", self.request.headers['Origin']
         #                 self.request.headers.get("X-Real-IP") or self.request.remote_ip)
         self.set_header("Access-Control-Allow-Origin",
-                            self.request.headers['Origin'])
+                            "http://145.116.47.199:8901")
         self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
         self.set_header("Access-Control-Allow-Headers", "accept")
@@ -155,6 +155,17 @@ class DirectoryHandler(BaseHandler):
                 400,
                 message='Directory Creation failed.'
             )
+        self.finish()
+
+
+class ContentHandler(BaseHandler):
+    con_service = syringe.inject('content-service')
 
     def get(self, user_id, dir_id):
-        print('under development')
+        self.set_header('Content-Type', 'application/json')
+        content = self.con_service.list_content_by_dir_id(
+            user_id=user_id,
+            dir_id=dir_id
+        )
+        self.write(json.dumps([c for c in content]))
+        self.finish()

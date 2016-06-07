@@ -41,7 +41,7 @@ class MongoDbHandler(object):
                 parent_dir_id=str(user),
                 contributors=[]
             )
-            self.create_home_directory(str(dir_['_id']), str(user))
+            self.create_home_directory(str(user), str(dir_['_id']))
 
             return True
         except:
@@ -81,6 +81,12 @@ class MongoDbHandler(object):
                 deleted=False,
                 dir_creation_date=datetime.datetime.now()
             ))
+            # save newley created directory in to content repo.
+            self.save_data_to_content_repo(
+                user_id=user_id,
+                content_id=str(dir_),
+                type='Directory'
+            )
             return self.get_directory_by_dir_id(dir_)
         except:
             print(traceback.format_exc())
@@ -118,6 +124,38 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def get_home_dir_by_user_id(self, u_id):
+        """
+        Get home directory by user id.
+        """
+        try:
+            dir_ = self.db['homedirectories'].find_one({'user_id': str(u_id)})
+            if dir_:
+                return dir_
+            else:
+                return None
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def save_data_to_content_repo(self, **kwargs):
+        """
+        Create content repo to store reference of files and folder,
+        in order to reduce the datastore query load we will save the
+        reference of the content.
+        """
+        try:
+            dir_ = self.db['content'].save(db_models.CustomModel(
+                user_id=kwargs['user_id'],
+                content_id=kwargs['content_id'],
+                type=kwargs['type'],
+                dir_creation_date=datetime.datetime.now()
+            ))
+            return True
+        except:
+            print(traceback.format_exc())
+            raise
+
     def list_content_by_dir_id(self, **kwargs):
         """
         List content of given directory.
@@ -125,8 +163,8 @@ class MongoDbHandler(object):
         dir_id = kwargs['dir_id']
         user_id = kwargs['user_id']
         try:
-            content = self.db['directories'].find({'deleted': False} and
-                                                {owner_id: user_id})
+            content = self.db['content'].find({'user_id': str(user_id)} and
+                                                {'content_id': str(dir_id)})
             if content:
                 return content
             else:
