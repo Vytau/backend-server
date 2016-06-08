@@ -66,7 +66,7 @@ class ContentService(object):
     """
     The service layer for :class:`MongoDbHandler.`
     """
-    
+
     mongodb_handler = syringe.inject('mongodb-handler')
 
     def list_content_by_dir_id(self, **kwargs):

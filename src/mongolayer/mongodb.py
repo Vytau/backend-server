@@ -33,16 +33,14 @@ class MongoDbHandler(object):
                 password_hash=hashed_pass,
                 user_creation_date=datetime.datetime.now()
             ))
-
-            # set up home directory for newley created user.
             dir_ = self.create_new_directory(
                 user_id=str(user),
                 folder_name="Home",
                 parent_dir_id=str(user),
                 contributors=[]
             )
+            # set up home directory for newley created user.
             self.create_home_directory(str(user), str(dir_['_id']))
-
             return True
         except:
             print(traceback.format_exc())
@@ -84,6 +82,8 @@ class MongoDbHandler(object):
             # save newley created directory in to content repo.
             self.save_data_to_content_repo(
                 user_id=user_id,
+                name=folder_name,
+                parent_id=parent_dir_id,
                 content_id=str(dir_),
                 type='Directory'
             )
@@ -147,7 +147,9 @@ class MongoDbHandler(object):
         try:
             dir_ = self.db['content'].save(db_models.CustomModel(
                 user_id=kwargs['user_id'],
+                parent_id=kwargs['parent_id'],
                 content_id=kwargs['content_id'],
+                name=kwargs['name'],
                 type=kwargs['type'],
                 dir_creation_date=datetime.datetime.now()
             ))
@@ -164,7 +166,7 @@ class MongoDbHandler(object):
         user_id = kwargs['user_id']
         try:
             content = self.db['content'].find({'user_id': str(user_id)} and
-                                                {'content_id': str(dir_id)})
+                                                {'parent_id': str(dir_id)})
             if content:
                 return content
             else:
