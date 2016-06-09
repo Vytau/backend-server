@@ -49,10 +49,10 @@ class BaseHandler(tornado.web.RequestHandler):
         # self.set_header("Access-Control-Allow-Origin", self.request.headers['Origin']
         #                 self.request.headers.get("X-Real-IP") or self.request.remote_ip)
         self.set_header("Access-Control-Allow-Origin",
-                            "http://145.116.47.199:8901")
+                            self.request.headers['Origin'])
         self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-        self.set_header("Access-Control-Allow-Headers", "accept")
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Accept,Origin")
 
     def get_login_url(self):
         return u"/login"

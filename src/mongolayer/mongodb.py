@@ -80,14 +80,14 @@ class MongoDbHandler(object):
                 dir_creation_date=datetime.datetime.now()
             ))
             # save newley created directory in to content repo.
-            self.save_data_to_content_repo(
+            con = self.save_data_to_content_repo(
                 user_id=user_id,
                 name=folder_name,
                 parent_id=parent_dir_id,
                 content_id=str(dir_),
                 type='Directory'
             )
-            return self.get_directory_by_dir_id(dir_)
+            return self.get_content_by_content_id(str(con))
         except:
             print(traceback.format_exc())
             raise
@@ -153,7 +153,7 @@ class MongoDbHandler(object):
                 type=kwargs['type'],
                 dir_creation_date=datetime.datetime.now()
             ))
-            return True
+            return dir_
         except:
             print(traceback.format_exc())
             raise
@@ -167,6 +167,23 @@ class MongoDbHandler(object):
         try:
             content = self.db['content'].find({'user_id': str(user_id)} and
                                                 {'parent_id': str(dir_id)})
+            if content:
+                return content
+            else:
+                return None
+
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def get_content_by_content_id(self, content_id):
+        """
+        List content of given directory.
+        """
+        try:
+            content = self.db['content'].find_one({
+                '_id': ObjectId(content_id)
+            })
             if content:
                 return content
             else:
