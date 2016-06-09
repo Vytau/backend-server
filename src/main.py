@@ -45,6 +45,7 @@ def init_services():
     services.UserService()
     services.DirectoryService()
     services.ContentService()
+    services.FileService()
 
 def init_db_handlers(app):
     db_handlers.MongoDbHandler(app)
@@ -58,7 +59,8 @@ class Application(tornado.wsgi.WSGIApplication):
             url(r"/api/register", api.RegisterHandler),
             url(r"/logout", api.LogoutHandler),
             url(r"/api/dir/([\w]+)", api.DirectoryHandler),
-            url(r"/api/content/([\w]+)/([\w]+)", api.ContentHandler)
+            url(r"/api/content/([\w]+)/([\w]+)", api.ContentHandler),
+            url(r"/api/file/([\w]+)", api.FileHandler)
         ]
 
         settings = {

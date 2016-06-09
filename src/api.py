@@ -169,3 +169,26 @@ class ContentHandler(BaseHandler):
         )
         self.write(json.dumps([c for c in content]))
         self.finish()
+
+class FileHandler(BaseHandler):
+    file_service = syringe.inject('file-service')
+
+    def post(self, user_id):
+        self.set_header('Content-Type', 'application/json')
+
+        data = tornado.escape.json_decode(self.request.body)
+        dir_ = self.file_service.create_new_file(
+            user_id=user_id,
+            file_name=data['file_name'],
+            text=data['text'],
+            parent_dir_id=data['parent_dir_id'],
+            contributors=data['contributors']
+        )
+        if dir_:
+            self.write(json.dumps(dir_))
+        else:
+            self.send_error(
+                400,
+                message='File Creation failed.'
+            )
+        self.finish()

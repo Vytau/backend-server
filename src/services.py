@@ -74,3 +74,17 @@ class ContentService(object):
             return self.mongodb_handler.list_content_by_dir_id(**kwargs)
         except:
             raise
+
+@syringe.provides('file-service')
+class FileService(object):
+    """
+    The service layer for :class:`MongoDbHandler.`
+    """
+
+    mongodb_handler = syringe.inject('mongodb-handler')
+
+    def create_new_file(self, **kwargs):
+        try:
+            return self.mongodb_handler.create_new_file(**kwargs)
+        except:
+            raise

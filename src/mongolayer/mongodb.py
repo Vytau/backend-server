@@ -192,3 +192,36 @@ class MongoDbHandler(object):
         except:
             print(traceback.format_exc())
             raise
+
+    def create_new_file(self, **kwargs):
+        """
+        Creates new file.
+        """
+        file_name = kwargs['file_name']
+        user_id = kwargs['user_id']
+        text = kwargs['text']
+        parent_dir_id = kwargs['parent_dir_id']
+        contributors = kwargs['contributors'] # list of user
+
+        try:
+            file_ = self.db['files'].save(db_models.CustomModel(
+                file_name=file_name,
+                owner_id=user_id,
+                contributors=contributors,
+                parent_dir_id=parent_dir_id,
+                deleted=False,
+                text=text,
+                dir_creation_date=datetime.datetime.now()
+            ))
+            # save newley created file in to content repo.
+            con = self.save_data_to_content_repo(
+                user_id=user_id,
+                name=file_name,
+                parent_id=parent_dir_id,
+                content_id=str(file_),
+                type='File'
+            )
+            return self.get_content_by_content_id(str(con))
+        except:
+            print(traceback.format_exc())
+            raise
