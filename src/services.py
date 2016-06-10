@@ -88,3 +88,9 @@ class FileService(object):
             return self.mongodb_handler.create_new_file(**kwargs)
         except:
             raise
+
+    def get_file_by_file_id(self, file_id):
+        try:
+            return self.mongodb_handler.get_file_by_file_id(file_id)
+        except:
+            raise

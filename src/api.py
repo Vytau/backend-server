@@ -50,6 +50,8 @@ class BaseHandler(tornado.web.RequestHandler):
         #                 self.request.headers.get("X-Real-IP") or self.request.remote_ip)
         self.set_header("Access-Control-Allow-Origin",
                             self.request.headers['Origin'])
+        # self.set_header("Access-Control-Allow-Origin",
+        #                     "http://145.93.177.18:8901/")
         self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Accept,Origin")
@@ -191,4 +193,10 @@ class FileHandler(BaseHandler):
                 400,
                 message='File Creation failed.'
             )
+        self.finish()
+
+    def get(self, file_id):
+        self.set_header('Content-Type', 'application/json')
+        file_ = self.file_service.get_file_by_file_id(file_id)
+        self.write(file_)
         self.finish()

@@ -225,3 +225,19 @@ class MongoDbHandler(object):
         except:
             print(traceback.format_exc())
             raise
+
+    def get_file_by_file_id(self, file_id):
+        """
+        Get a file by file id
+        """
+        try:
+            file_ = self.db['files'].find_one({
+                '_id': ObjectId(file_id)
+            })
+            if file_:
+                return file_
+            else:
+                return None
+        except:
+            print(traceback.format_exc())
+            raise
