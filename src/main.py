@@ -60,7 +60,8 @@ class Application(tornado.wsgi.WSGIApplication):
             url(r"/logout", api.LogoutHandler),
             url(r"/api/dir/([\w]+)", api.DirectoryHandler),
             url(r"/api/content/([\w]+)/([\w]+)", api.ContentHandler),
-            url(r"/api/file/([\w]+)", api.FileHandler)
+            url(r"/api/file/([\w]+)", api.FileHandler),
+            url(r"/api/file/data/([\w]+)/([\w]+)", api.FileDataHandler)
         ]
 
         settings = {

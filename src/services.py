@@ -94,3 +94,9 @@ class FileService(object):
             return self.mongodb_handler.get_file_by_file_id(file_id)
         except:
             raise
+
+    def update_file_data(self, **kwargs):
+        try:
+            return self.mongodb_handler.update_file_data(**kwargs)
+        except:
+            raise

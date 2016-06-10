@@ -241,3 +241,27 @@ class MongoDbHandler(object):
         except:
             print(traceback.format_exc())
             raise
+
+    def update_file_data(self, **kwargs):
+        """
+        Update text of given file.
+        """
+        user_id = kwargs['user_id']
+        file_id = kwargs['file_id']
+        text = kwargs['text']
+        try:
+            file_ = self.db['files'].update_one({
+                '_id': ObjectId(file_id)
+            }, {
+                '$set': {
+                    'text': text
+                }
+            })
+            if file_:
+                print(file_)
+                return file_
+            else:
+                return None
+        except:
+            print(traceback.format_exc())
+            raise
