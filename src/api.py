@@ -113,8 +113,10 @@ class RegisterHandler(BaseHandler):
         email = self.get_argument('email', '')
         name = self.get_argument('name', '')
         if self.user_service.get_user_by_email(email):
-            raise tornado.web.HTTPError(409, 'User already exists, '
-                                             'aborting')
+            self.send_error(
+                400,
+                message='User already exists.'
+            )
         password = self.get_argument('password', '').encode('utf-8')
         user = self.user_service.create_user(
             name=name,
@@ -149,8 +151,10 @@ class LoginHandler(BaseHandler):
             self.write(json.dumps(user))
         else:
             self.set_secure_cookie('flash', "Login incorrect")
-            raise tornado.web.HTTPError(400, 'Loign Failed, '
-                                             'aborting')
+            self.send_error(
+                401,
+                message='Login failed, emmail or password incorrect.'
+            )
 
 
 class LogoutHandler(BaseHandler):
