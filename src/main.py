@@ -46,6 +46,7 @@ def init_services():
     services.DirectoryService()
     services.ContentService()
     services.FileService()
+    services.AuthService()
 
 def init_db_handlers(app):
     db_handlers.MongoDbHandler(app)

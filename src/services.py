@@ -3,6 +3,9 @@ from __future__ import absolute_import
 import traceback
 import bcrypt
 import syringe
+import base64
+import os
+import re
 
 
 class KeyboardInterruptError(Exception):
@@ -98,5 +101,52 @@ class FileService(object):
     def update_file_data(self, **kwargs):
         try:
             return self.mongodb_handler.update_file_data(**kwargs)
+        except:
+            raise
+
+@syringe.provides('auth-service')
+class AuthService(object):
+    """
+    The service layer for :class:`MongoDbHandler.`
+    """
+
+    mongodb_handler = syringe.inject('mongodb-handler')
+
+    def generate_aut_token(self, **kwargs):
+        try:
+            return self.mongodb_handler.generate_aut_token(**kwargs)
+        except:
+            raise
+
+    def generate_oauth2_token(self):
+        """
+        Generate an oauth2 access or refresh token.
+
+        The token returned matches the syntax specified in
+        `rfc6749 secion 8.1
+        <https://tools.ietf.org/html/rfc6749#section-8.1>`_.
+
+        Warning: **Do not use the same token for multiple cases.**
+
+        Returns:
+            unicode: A random oauth2 token.
+
+        """
+        token = base64.urlsafe_b64encode(os.urandom(30)).decode().replace('==', '')
+        assert re.match(r'[\d\w_\.-]+', token), (
+            'Generated token "{!r}" does not match rfc6749').format(token)
+
+        refresh_token = base64.urlsafe_b64encode(os.urandom(30)).decode().replace('==', '')
+        assert re.match(r'[\d\w_\.-]+', refresh_token), (
+            'Generated token "{!r}" does not match rfc6749').format(refresh_token)
+        return {
+            'auth_token': token,
+            'refresh_token': refresh_token
+        }
+
+
+    def validate_auth_token(self, **kwargs):
+        try:
+            return self.mongodb_handler.validate_auth_token(**kwargs)
         except:
             raise

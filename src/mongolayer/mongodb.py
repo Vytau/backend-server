@@ -265,3 +265,60 @@ class MongoDbHandler(object):
         except:
             print(traceback.format_exc())
             raise
+
+    def generate_aut_token(self, **kwargs):
+        """
+        Generate auth token for given user.
+        """
+        user_id = kwargs['user_id']
+        auth_token = kwargs['auth_token']
+        refresh_token = kwargs['refresh_token']
+        expire_time = datetime.datetime.now() + datetime.timedelta(minutes=10)
+
+        try:
+            token = self.db['auth'].save(db_models.CustomModel(
+                user_id=user_id,
+                auth_token=auth_token,
+                refresh_token=refresh_token,
+                expire_time=expire_time
+            ))
+            if token:
+                return True
+            return False
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def validate_auth_token(self, **kwargs):
+        """
+        Validate given token.
+        """
+        user_id = kwargs['user_id']
+        auth_token = kwargs['auth_token']
+        refresh_token = kwargs['refresh_token']
+
+        try:
+            token = self.db['auth'].find_one({'user_id': str(user_id)} and
+                                                    {'auth_token': str(auth_token)})
+            print('validating')
+            if datetime.datetime.now() < token['expire_time']:
+                return True
+            else:
+                return self.refresh_auth_token(refresh_token, token)
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def refresh_auth_token(self, recieved_token, token):
+        print('refreshing auth token')
+        if recieved_token == token['refresh_token']:
+            res = self.db['auth'].update_one({
+                '_id': ObjectId(token['_id'])
+            }, {
+                '$set': {
+                    'expire_time': datetime.datetime.now() + datetime.timedelta(minutes=10)
+                }
+            })
+            if res:
+                return True
+        return False

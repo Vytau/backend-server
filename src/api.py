@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import syringe
 import bcrypt
+import socket
 import functools
 import logging
 from bson import ObjectId
@@ -32,9 +33,22 @@ def authenticated_async(f):
     @tornado.web.asynchronous
     def wrapper(self, *args, **kwargs):
         self.current_user = self.get_current_user()
-        if self.current_user:
-            logging.info('User successfully authenticated')
-            f(self, *args, **kwargs)
+        auth = self.request.headers.get('Authorization')
+        if auth and auth.startswith('Basic '):
+            auth_token, refresh_token, user_id= auth.split(':')
+            _, auth_token = auth_token.split(' ')
+            print(auth_token)
+            authenticated = self.auth_service.validate_auth_token(
+                user_id=user_id,
+                auth_token=auth_token,
+                refresh_token=refresh_token
+            )
+            if authenticated:
+                logging.info('User successfully authenticated')
+                f(self, *args, **kwargs)
+            else:
+                raise tornado.web.HTTPError(401, 'User not authenticated, '
+                                                 'aborting')
         else:
             raise tornado.web.HTTPError(401, 'User not authenticated, '
                                              'aborting')
@@ -42,26 +56,34 @@ def authenticated_async(f):
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    auth_service = syringe.inject('auth-service')
+
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request)
 
     def set_default_headers(self):
-        # self.set_header("Access-Control-Allow-Origin", self.request.headers['Origin']
-        #                 self.request.headers.get("X-Real-IP") or self.request.remote_ip)
-        self.set_header("Access-Control-Allow-Origin",
-                            self.request.headers['Origin'])
-        # self.set_header("Access-Control-Allow-Origin",
-        #                     "http://145.93.177.18:8901/")
+        self.set_header("Access-Control-Allow-Origin", self.request.headers['Origin'])
         self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Accept,Origin")
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Accept,Origin,Authorization")
+
+    @tornado.web.asynchronous
+    def options(self, *args, **kwargs):
+        """XHR cross-domain OPTIONS handler"""
+        self.set_status(204)
+        self.finish()
 
     def get_login_url(self):
         return u"/login"
 
     def set_current_user(self, user):
         if user:
-            self.set_secure_cookie("user", tornado.escape.json_encode(user), 10)
+            tokens = self.auth_service.generate_oauth2_token()
+            user['auth_token'] = tokens['auth_token']
+            user['refresh_token'] = tokens['refresh_token']
+            user['user_id'] = str(user['_id'])
+            self.auth_service.generate_aut_token(**user)
+            # self.set_secure_cookie("user", tornado.escape.json_encode(user), 10)
         else:
             self.clear_cookie("user")
 
@@ -70,7 +92,7 @@ class BaseHandler(tornado.web.RequestHandler):
             kwargs['message'] = 'Unknown Error: '
         self.write(kwargs['message'])
 
-    # @authenticated_async
+    @authenticated_async
     def get(self):
         if not self.current_user:
             self.render("login.html")
@@ -86,6 +108,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class RegisterHandler(BaseHandler):
     user_service = syringe.inject('user-service')
 
+    @tornado.web.asynchronous
     def post(self):
         self.set_header('Content-Type', 'application/json')
         email = self.get_argument('email', '')
@@ -101,7 +124,7 @@ class RegisterHandler(BaseHandler):
             db=self.application.syncdb
         )
         if user:
-            self.set_current_user(email)
+            self.set_current_user(user)
             del user['password_hash']
             self.write(json.dumps(user))
         else:
@@ -113,7 +136,7 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     user_service = syringe.inject('user-service')
 
-    @gen.coroutine
+    @tornado.web.asynchronous
     def post(self):
         self.set_header('Content-Type', 'application/json')
         email = self.get_argument('email', '')
@@ -122,7 +145,7 @@ class LoginHandler(BaseHandler):
 
         # Warning bcrypt will block IO loop:
         if user and user['password_hash'] and bcrypt.hashpw(password, user['password_hash']) == user['password_hash']:
-            self.set_current_user(email)
+            self.set_current_user(user)
             del user['password_hash']
             self.write(json.dumps(user))
         else:
@@ -140,6 +163,8 @@ class LogoutHandler(BaseHandler):
 class DirectoryHandler(BaseHandler):
     dir_service = syringe.inject('directory-service')
 
+    @tornado.web.asynchronous
+    @authenticated_async
     def post(self, user_id):
         self.set_header('Content-Type', 'application/json')
 
@@ -163,6 +188,8 @@ class DirectoryHandler(BaseHandler):
 class ContentHandler(BaseHandler):
     con_service = syringe.inject('content-service')
 
+    @tornado.web.asynchronous
+    @authenticated_async
     def get(self, user_id, dir_id):
         self.set_header('Content-Type', 'application/json')
         content = self.con_service.list_content_by_dir_id(
@@ -175,6 +202,8 @@ class ContentHandler(BaseHandler):
 class FileHandler(BaseHandler):
     file_service = syringe.inject('file-service')
 
+    @tornado.web.asynchronous
+    @authenticated_async
     def post(self, user_id):
         self.set_header('Content-Type', 'application/json')
 
@@ -195,6 +224,8 @@ class FileHandler(BaseHandler):
             )
         self.finish()
 
+    @tornado.web.asynchronous
+    @authenticated_async
     def get(self, file_id):
         self.set_header('Content-Type', 'application/json')
         file_ = self.file_service.get_file_by_file_id(file_id)
@@ -204,6 +235,8 @@ class FileHandler(BaseHandler):
 class FileDataHandler(BaseHandler):
     file_service = syringe.inject('file-service')
 
+    @tornado.web.asynchronous
+    @authenticated_async
     def post(self, user_id, file_id):
         self.set_header('Content-Type', 'application/json')
 
