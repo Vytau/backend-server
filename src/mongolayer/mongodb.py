@@ -300,11 +300,12 @@ class MongoDbHandler(object):
         try:
             token = self.db['auth'].find_one({'user_id': str(user_id)} and
                                                     {'auth_token': str(auth_token)})
-            print('validating')
-            if datetime.datetime.now() < token['expire_time']:
-                return True
-            else:
-                return self.refresh_auth_token(refresh_token, token)
+            if token:
+                if datetime.datetime.now() < token['expire_time']:
+                    return True
+                else:
+                    return self.refresh_auth_token(refresh_token, token)
+            return False
         except:
             print(traceback.format_exc())
             raise

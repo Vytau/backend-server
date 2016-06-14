@@ -37,7 +37,6 @@ def authenticated_async(f):
         if auth and auth.startswith('Basic '):
             auth_token, refresh_token, user_id= auth.split(':')
             _, auth_token = auth_token.split(' ')
-            print(auth_token)
             authenticated = self.auth_service.validate_auth_token(
                 user_id=user_id,
                 auth_token=auth_token,
