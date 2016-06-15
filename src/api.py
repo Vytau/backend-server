@@ -137,7 +137,7 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     user_service = syringe.inject('user-service')
 
-    @tornado.web.asynchronous
+    # @tornado.web.asynchronous
     def post(self):
         self.set_header('Content-Type', 'application/json')
         email = self.get_argument('email', '')
