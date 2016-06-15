@@ -98,11 +98,18 @@ class FileService(object):
         except:
             raise
 
+    def update_file_meta(self, **kwargs):
+        try:
+            return self.mongodb_handler.update_file_meta(**kwargs)
+        except:
+            raise
+
     def update_file_data(self, **kwargs):
         try:
             return self.mongodb_handler.update_file_data(**kwargs)
         except:
             raise
+
 
 @syringe.provides('auth-service')
 class AuthService(object):

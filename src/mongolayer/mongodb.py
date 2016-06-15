@@ -158,6 +158,29 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def update_content_meta(self, **kwargs):
+        """
+        Update content name.
+        """
+        content_id = kwargs['content_id']
+        name = kwargs['name']
+        try:
+            file_ = self.db['content'].update_one({
+                'content_id': content_id
+            }, {
+                '$set': {
+                    'name': name
+                }
+            })
+            if file_:
+                print(file_)
+                return file_
+            else:
+                return None
+        except:
+            print(traceback.format_exc())
+            raise
+
     def list_content_by_dir_id(self, **kwargs):
         """
         List content of given directory.
@@ -238,6 +261,32 @@ class MongoDbHandler(object):
                 return file_
             else:
                 return None
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def update_file_meta(self, **kwargs):
+        """
+        Update file name of given file.
+        """
+        file_id = kwargs['file_id']
+        file_name = kwargs['file_name']
+        try:
+            file_ = self.db['files'].update_one({
+                '_id': ObjectId(file_id)
+            }, {
+                '$set': {
+                    'file_name': file_name
+                }
+            })
+            if file_:
+                if self.update_content_meta(
+                    content_id=file_id,
+                    name=file_name
+                ):
+                    return True
+            else:
+                return False
         except:
             print(traceback.format_exc())
             raise

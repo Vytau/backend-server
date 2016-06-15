@@ -137,7 +137,7 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     user_service = syringe.inject('user-service')
 
-    # @tornado.web.asynchronous
+    @tornado.web.asynchronous
     def post(self):
         self.set_header('Content-Type', 'application/json')
         email = self.get_argument('email', '')
@@ -226,6 +226,27 @@ class FileHandler(BaseHandler):
                 message='File Creation failed.'
             )
         self.finish()
+
+    @tornado.web.asynchronous
+    # @authenticated_async
+    def put(self, file_id):
+        self.set_header('Content-Type', 'application/json')
+
+        data = tornado.escape.json_decode(self.request.body)
+        file_ = self.file_service.update_file_meta(
+            file_name=data['file_name'],
+            file_id=file_id
+        )
+        if file_:
+            self.write(json.dumps(file_))
+        else:
+            self.send_error(
+                400,
+                message='File Update failed.'
+            )
+        self.finish()
+
+
 
     @tornado.web.asynchronous
     @authenticated_async
