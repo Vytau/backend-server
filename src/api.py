@@ -187,6 +187,25 @@ class DirectoryHandler(BaseHandler):
             )
         self.finish()
 
+    @tornado.web.asynchronous
+    # @authenticated_async
+    def put(self, dir_id):
+        self.set_header('Content-Type', 'application/json')
+
+        data = tornado.escape.json_decode(self.request.body)
+        file_ = self.dir_service.update_directory_meta(
+            folder_name=data['folder_name'],
+            dir_id=dir_id
+        )
+        if file_:
+            self.write(json.dumps(file_))
+        else:
+            self.send_error(
+                400,
+                message='Directory Update failed.'
+            )
+        self.finish()
+
 
 class ContentHandler(BaseHandler):
     con_service = syringe.inject('content-service')
@@ -228,7 +247,7 @@ class FileHandler(BaseHandler):
         self.finish()
 
     @tornado.web.asynchronous
-    # @authenticated_async
+    @authenticated_async
     def put(self, file_id):
         self.set_header('Content-Type', 'application/json')
 
@@ -245,7 +264,6 @@ class FileHandler(BaseHandler):
                 message='File Update failed.'
             )
         self.finish()
-
 
 
     @tornado.web.asynchronous

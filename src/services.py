@@ -57,9 +57,15 @@ class DirectoryService(object):
         except:
             raise
 
-    def get_home_dir_by_user_id(self, **kwargs):
+    def get_home_dir_by_user_id(self, user_id):
         try:
             return self.mongodb_handler.get_home_dir_by_user_id(user_id)
+        except:
+            raise
+
+    def update_directory_meta(self, **kwargs):
+        try:
+            return self.mongodb_handler.update_directory_meta(**kwargs)
         except:
             raise
 

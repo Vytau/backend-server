@@ -108,6 +108,32 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def update_directory_meta(self, **kwargs):
+        """
+        Update file name of given file.
+        """
+        dir_id = kwargs['dir_id']
+        folder_name = kwargs['folder_name']
+        try:
+            dir_ = self.db['directories'].update_one({
+                '_id': ObjectId(dir_id)
+            }, {
+                '$set': {
+                    'folder_name': folder_name
+                }
+            })
+            if dir_:
+                if self.update_content_meta(
+                    content_id=dir_id,
+                    name=folder_name
+                ):
+                    return True
+            else:
+                return False
+        except:
+            print(traceback.format_exc())
+            raise
+
     def get_directory_by_dir_id(self, dir_id):
         """
         Get directory by dir id
