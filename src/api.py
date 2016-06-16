@@ -114,46 +114,47 @@ class RegisterHandler(BaseHandler):
         name = self.get_argument('name', '')
         if self.user_service.get_user_by_email(email):
             self.send_error(
-                400,
+                401,
                 message='User already exists.'
             )
-        password = self.get_argument('password', '').encode('utf-8')
-        user = self.user_service.create_user(
-            name=name,
-            email=email,
-            password=password,
-            db=self.application.syncdb
-        )
-        if user:
-            self.set_current_user(user)
-            del user['password_hash']
-            self.write(json.dumps(user))
         else:
-            raise tornado.web.HTTPError(400, 'Registration Failed, '
+            password = self.get_argument('password', '').encode('utf-8')
+            user = self.user_service.create_user(
+                name=name,
+                email=email,
+                password=password,
+                db=self.application.syncdb
+            )
+            if user:
+                self.set_current_user(user)
+                del user['password_hash']
+                self.write(json.dumps(user))
+            else:
+                raise tornado.web.HTTPError(400, 'Registration Failed, '
                                              'aborting')
-        self.finish()
+            self.finish()
 
 
 class LoginHandler(BaseHandler):
     user_service = syringe.inject('user-service')
 
-    @tornado.web.asynchronous
+    # @tornado.web.asynchronous // dose not all
     def post(self):
-        self.set_header('Content-Type', 'application/json')
         email = self.get_argument('email', '')
         password = self.get_argument('password', '').encode('utf-8')
         user = self.user_service.get_user_by_email(email)
-
+        self.set_header('Content-Type', 'application/json')
         # Warning bcrypt will block IO loop:
         if user and user['password_hash'] and bcrypt.hashpw(password, user['password_hash']) == user['password_hash']:
             self.set_current_user(user)
             del user['password_hash']
             self.write(json.dumps(user))
         else:
+
             self.set_secure_cookie('flash', "Login incorrect")
             self.send_error(
                 401,
-                message='Login failed, emmail or password incorrect.'
+                message='Login failed, email or password incorrect.'
             )
 
 
@@ -166,7 +167,7 @@ class LogoutHandler(BaseHandler):
 class DirectoryHandler(BaseHandler):
     dir_service = syringe.inject('directory-service')
 
-    @tornado.web.asynchronous
+    # @tornado.web.asynchronous
     @authenticated_async
     def post(self, user_id):
         self.set_header('Content-Type', 'application/json')
@@ -188,7 +189,7 @@ class DirectoryHandler(BaseHandler):
         self.finish()
 
     @tornado.web.asynchronous
-    # @authenticated_async
+    @authenticated_async
     def put(self, dir_id):
         self.set_header('Content-Type', 'application/json')
 
@@ -210,7 +211,7 @@ class DirectoryHandler(BaseHandler):
 class ContentHandler(BaseHandler):
     con_service = syringe.inject('content-service')
 
-    @tornado.web.asynchronous
+    # @tornado.web.asynchronous
     @authenticated_async
     def get(self, user_id, dir_id):
         self.set_header('Content-Type', 'application/json')

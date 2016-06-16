@@ -48,10 +48,10 @@ class MongoDbHandler(object):
 
     def get_user_by_email(self, email):
         """
-        Check if users already exists
+        get user by email
         """
         try:
-            user = self.db['users'].find_one({'email': email})
+            user = self.db['users'].find_one({'email': str(email)})
             if user:
                 return user
             else:
