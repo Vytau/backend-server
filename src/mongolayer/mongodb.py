@@ -161,6 +161,20 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def delete_content(self, con_id):
+        """
+        Delete content.
+        """
+        try:
+            con = self.db['content'].remove({'content_id': con_id})
+            if con:
+                return True
+            else:
+                return False
+        except:
+            print(traceback.format_exc())
+            raise
+
     def get_directory_by_dir_id(self, dir_id):
         """
         Get directory by dir id
@@ -242,10 +256,10 @@ class MongoDbHandler(object):
         dir_id = kwargs['dir_id']
         user_id = kwargs['user_id']
         try:
-            content = self.db['content'].find({'user_id': str(user_id)} and
-                                                {'parent_id': str(dir_id)} and
-                                                    {'deleted': False} and
-                                                        {'parent_id': {'$ne': str(user_id)}})
+            content = self.db['content'].find({'$and': [{'user_id': str(user_id)},
+                                                {'parent_id': str(dir_id)},
+                                                    {'parent_id': {'$ne': str(user_id)}},
+                                                        {'deleted': False}]})
             if content:
                 return content
             else:

@@ -110,6 +110,14 @@ class BinService(object):
         except:
             raise
 
+    mongodb_handler = syringe.inject('mongodb-handler')
+
+    def delete_content(self, con_id):
+        try:
+            return self.mongodb_handler.delete_content(con_id)
+        except:
+            raise
+
 @syringe.provides('file-service')
 class FileService(object):
     """

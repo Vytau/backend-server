@@ -250,6 +250,20 @@ class BinHandler(BaseHandler):
         self.write(json.dumps([c for c in content]))
         self.finish()
 
+    @tornado.web.asynchronous
+    @authenticated_async
+    def delete(self, con_id):
+        self.set_header('Content-Type', 'application/json')
+        dir_ =  self.bin_service.delete_content(con_id)
+        if dir_:
+            self.write(json.dumps(dir_))
+        else:
+            self.send_error(
+                400,
+                message='File Update failed.'
+            )
+        self.finish()
+
 
 class FileHandler(BaseHandler):
     file_service = syringe.inject('file-service')
