@@ -341,6 +341,27 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def delete_file_by_id(self, file_id):
+        """
+        Delete given file.
+        """
+        try:
+            file_ = self.db['files'].update_one({
+                '_id': ObjectId(file_id)
+            }, {
+                '$set': {
+                    'deleted': True
+                }
+            })
+            if file_:
+                con = self.db['content'].remove({'content_id': file_id})
+                return True
+            else:
+                return False
+        except:
+            print(traceback.format_exc())
+            raise
+
     def generate_aut_token(self, **kwargs):
         """
         Generate auth token for given user.

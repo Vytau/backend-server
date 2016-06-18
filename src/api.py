@@ -269,6 +269,20 @@ class FileHandler(BaseHandler):
             )
         self.finish()
 
+    @tornado.web.asynchronous
+    @authenticated_async
+    def delete(self, file_id):
+        self.set_header('Content-Type', 'application/json')
+        file_ =  self.file_service.delete_file_by_id(file_id)
+        if file_:
+            self.write(json.dumps(file_))
+        else:
+            self.send_error(
+                400,
+                message='File Update failed.'
+            )
+        self.finish()
+
 
     @tornado.web.asynchronous
     @authenticated_async

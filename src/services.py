@@ -122,6 +122,12 @@ class FileService(object):
         except:
             raise
 
+    def delete_file_by_id(self, file_id):
+        try:
+            return self.mongodb_handler.delete_file_by_id(file_id)
+        except:
+            raise
+
 
 @syringe.provides('auth-service')
 class AuthService(object):
