@@ -386,7 +386,6 @@ class MongoDbHandler(object):
             raise
 
     def refresh_auth_token(self, recieved_token, token):
-        print('refreshing auth token')
         if recieved_token == token['refresh_token']:
             res = self.db['auth'].update_one({
                 '_id': ObjectId(token['_id'])
@@ -398,3 +397,32 @@ class MongoDbHandler(object):
             if res:
                 return True
         return False
+
+    def clone(self, **kwargs):
+        if 'File' in kwargs['type']:
+            res = self.copy_helper_file(kwargs['content_id'],  kwargs['toPaste'])
+        else:
+            self.copy_helper_dir(kwargs['content_id'], kwargs['toPaste'])
+        return True
+
+    def copy_helper_file(self, content_id, new_parent_id):
+        file_ = self.get_file_by_file_id(content_id)
+        file_['parent_dir_id'] = new_parent_id
+        file_['user_id'] = file_['owner_id']
+        return self.create_new_file(**file_)
+
+    def copy_helper_dir(self, content_id, new_parent_id):
+        temp_dir = self.get_directory_by_dir_id(content_id)
+        temp_dir['parent_dir_id'] = new_parent_id
+        temp_dir['user_id'] = temp_dir['owner_id']
+        new_con =  self.create_new_directory(**temp_dir)
+        sub_con = self.list_content_by_dir_id(
+            dir_id=str(content_id),
+            user_id=temp_dir['user_id']
+        )
+        if sub_con:
+            for c in sub_con:
+                if 'Directory' in c['type']:
+                    self.copy_helper_dir(c['content_id'], new_con['content_id'])
+                else:
+                    self.copy_helper_file(c['content_id'],  new_con['content_id'])

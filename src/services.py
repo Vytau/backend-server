@@ -84,6 +84,12 @@ class ContentService(object):
         except:
             raise
 
+    def clone(self, **kwargs):
+        try:
+            return self.mongodb_handler.clone(**kwargs)
+        except:
+            raise
+
 @syringe.provides('file-service')
 class FileService(object):
     """

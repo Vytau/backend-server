@@ -62,7 +62,8 @@ class Application(tornado.wsgi.WSGIApplication):
             url(r"/api/dir/([\w]+)", api.DirectoryHandler),
             url(r"/api/content/([\w]+)/([\w]+)", api.ContentHandler),
             url(r"/api/file/([\w]+)", api.FileHandler),
-            url(r"/api/file/data/([\w]+)/([\w]+)", api.FileDataHandler)
+            url(r"/api/file/data/([\w]+)/([\w]+)", api.FileDataHandler),
+            url(r"/api/clone", api.CloneHandler)
         ]
 
         settings = {

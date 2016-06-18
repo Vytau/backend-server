@@ -222,6 +222,9 @@ class ContentHandler(BaseHandler):
         self.write(json.dumps([c for c in content]))
         self.finish()
 
+
+
+
 class FileHandler(BaseHandler):
     file_service = syringe.inject('file-service')
 
@@ -295,5 +298,25 @@ class FileDataHandler(BaseHandler):
             self.send_error(
                 400,
                 message='File Creation failed.'
+            )
+        self.finish()
+
+class CloneHandler(BaseHandler):
+    con_service = syringe.inject('content-service')
+
+    @tornado.web.asynchronous
+    @authenticated_async
+    def post(self):
+        self.set_header('Content-Type', 'application/json')
+
+        data = tornado.escape.json_decode(self.request.body)
+        # print(data)
+        res = self.con_service.clone(**data)
+        if res:
+            self.write(json.dumps(res))
+        else:
+            self.send_error(
+                400,
+                message='Copying data failed'
             )
         self.finish()
