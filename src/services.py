@@ -69,6 +69,12 @@ class DirectoryService(object):
         except:
             raise
 
+    def delete_directory_by_id(self, dir_id):
+        try:
+            return self.mongodb_handler.delete_directory_by_id(dir_id)
+        except:
+            raise
+
 
 @syringe.provides('content-service')
 class ContentService(object):
@@ -112,7 +118,7 @@ class FileService(object):
 
     def update_file_meta(self, **kwargs):
         try:
-            return self.mongodb_handler.update_file_meta(**kwargs)
+            return self.mongodb_handler.updatedelete_directory_by_id_file_meta(**kwargs)
         except:
             raise
 

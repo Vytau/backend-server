@@ -134,6 +134,27 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def delete_directory_by_id(self, dir_id):
+        """
+        Delete given dir_.
+        """
+        try:
+            dir_ = self.db['directories'].update_one({
+                '_id': ObjectId(dir_id)
+            }, {
+                '$set': {
+                    'deleted': True
+                }
+            })
+            if dir_:
+                con = self.db['content'].remove({'content_id': dir_id})
+                return True
+            else:
+                return False
+        except:
+            print(traceback.format_exc())
+            raise
+
     def get_directory_by_dir_id(self, dir_id):
         """
         Get directory by dir id

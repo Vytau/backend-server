@@ -207,6 +207,20 @@ class DirectoryHandler(BaseHandler):
             )
         self.finish()
 
+    @tornado.web.asynchronous
+    @authenticated_async
+    def delete(self, dir_id):
+        self.set_header('Content-Type', 'application/json')
+        dir_ =  self.dir_service.delete_directory_by_id(dir_id)
+        if dir_:
+            self.write(json.dumps(dir_))
+        else:
+            self.send_error(
+                400,
+                message='File Update failed.'
+            )
+        self.finish()
+
 
 class ContentHandler(BaseHandler):
     con_service = syringe.inject('content-service')
