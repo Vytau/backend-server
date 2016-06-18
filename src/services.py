@@ -96,6 +96,20 @@ class ContentService(object):
         except:
             raise
 
+@syringe.provides('bin-service')
+class BinService(object):
+    """
+    The service layer for :class:`MongoDbHandler.`
+    """
+
+    mongodb_handler = syringe.inject('mongodb-handler')
+
+    def list_deleted_content(self, **kwargs):
+        try:
+            return self.mongodb_handler.list_deleted_content(**kwargs)
+        except:
+            raise
+
 @syringe.provides('file-service')
 class FileService(object):
     """

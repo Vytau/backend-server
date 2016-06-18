@@ -147,7 +147,13 @@ class MongoDbHandler(object):
                 }
             })
             if dir_:
-                con = self.db['content'].remove({'content_id': dir_id})
+                con = self.db['content'].update_one({
+                    'content_id': dir_id
+                }, {
+                    '$set': {
+                        'deleted': True
+                    }
+                })
                 return True
             else:
                 return False
@@ -198,6 +204,7 @@ class MongoDbHandler(object):
                 content_id=kwargs['content_id'],
                 name=kwargs['name'],
                 type=kwargs['type'],
+                deleted=False,
                 dir_creation_date=datetime.datetime.now()
             ))
             return dir_
@@ -236,7 +243,26 @@ class MongoDbHandler(object):
         user_id = kwargs['user_id']
         try:
             content = self.db['content'].find({'user_id': str(user_id)} and
-                                                {'parent_id': str(dir_id)})
+                                                {'parent_id': str(dir_id)} and
+                                                    {'deleted': False} and
+                                                        {'parent_id': {'$ne': str(user_id)}})
+            if content:
+                return content
+            else:
+                return None
+
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def list_deleted_content(self, **kwargs):
+        """
+        List content of given directory.
+        """
+        user_id = kwargs['user_id']
+        try:
+            content = self.db['content'].find({'user_id': str(user_id)} and
+                                                    {'deleted': True})
             if content:
                 return content
             else:
@@ -375,7 +401,13 @@ class MongoDbHandler(object):
                 }
             })
             if file_:
-                con = self.db['content'].remove({'content_id': file_id})
+                con = self.db['content'].update_one({
+                    'content_id': file_id
+                }, {
+                    '$set': {
+                        'deleted': True
+                    }
+                })
                 return True
             else:
                 return False

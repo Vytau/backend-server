@@ -237,6 +237,18 @@ class ContentHandler(BaseHandler):
         self.finish()
 
 
+class BinHandler(BaseHandler):
+    bin_service = syringe.inject('bin-service')
+
+    # @tornado.web.asynchronous
+    @authenticated_async
+    def get(self, user_id):
+        self.set_header('Content-Type', 'application/json')
+        content = self.bin_service.list_deleted_content(
+            user_id=user_id
+        )
+        self.write(json.dumps([c for c in content]))
+        self.finish()
 
 
 class FileHandler(BaseHandler):

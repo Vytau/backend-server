@@ -47,6 +47,7 @@ def init_services():
     services.ContentService()
     services.FileService()
     services.AuthService()
+    services.BinService()
 
 def init_db_handlers(app):
     db_handlers.MongoDbHandler(app)
@@ -63,7 +64,8 @@ class Application(tornado.wsgi.WSGIApplication):
             url(r"/api/content/([\w]+)/([\w]+)", api.ContentHandler),
             url(r"/api/file/([\w]+)", api.FileHandler),
             url(r"/api/file/data/([\w]+)/([\w]+)", api.FileDataHandler),
-            url(r"/api/clone", api.CloneHandler)
+            url(r"/api/clone", api.CloneHandler),
+            url(r"/api/bin/([\w]+)", api.BinHandler)
         ]
 
         settings = {
