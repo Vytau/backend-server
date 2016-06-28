@@ -132,6 +132,12 @@ class FileService(object):
         except:
             raise
 
+    def uplaod_new_file(self, **kwargs):
+        try:
+            return self.mongodb_handler.uplaod_new_file(**kwargs)
+        except:
+            raise
+
     def get_file_by_file_id(self, file_id):
         try:
             return self.mongodb_handler.get_file_by_file_id(file_id)

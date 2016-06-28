@@ -292,6 +292,27 @@ class FileHandler(BaseHandler):
 
     @tornado.web.asynchronous
     @authenticated_async
+    def post(self, user_id):
+        self.set_header('Content-Type', 'application/json')
+        data = tornado.escape.json_decode(self.request.body)
+        dir_ = self.file_service.uplaod_new_file(
+            user_id=user_id,
+            file_name=data['file_name'],
+            text=data['text'],
+            parent_dir_id=data['parent_dir_id'],
+            contributors=data['contributors']
+        )
+        if dir_:
+            self.write(json.dumps(dir_))
+        else:
+            self.send_error(
+                400,
+                message='File upload failed.'
+            )
+        self.finish()
+
+    @tornado.web.asynchronous
+    @authenticated_async
     def put(self, file_id):
         self.set_header('Content-Type', 'application/json')
 
