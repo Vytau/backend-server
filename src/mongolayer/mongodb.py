@@ -514,3 +514,18 @@ class MongoDbHandler(object):
                     self.copy_helper_dir(c['content_id'], new_con['content_id'])
                 else:
                     self.copy_helper_file(c['content_id'],  new_con['content_id'])
+
+
+    def create_share_repo(self, **kwargs):
+        """
+        """
+        try:
+            dir_ = self.db['shared'].save(db_models.CustomModel(
+                user_id=kwargs['user_id'],
+                content_id=kwargs['content_id']
+                dir_creation_date=datetime.datetime.now()
+            ))
+            return dir_
+        except:
+            print(traceback.format_exc())
+            raise

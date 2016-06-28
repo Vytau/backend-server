@@ -110,8 +110,6 @@ class BinService(object):
         except:
             raise
 
-    mongodb_handler = syringe.inject('mongodb-handler')
-
     def delete_content(self, con_id):
         try:
             return self.mongodb_handler.delete_content(con_id)
@@ -201,5 +199,19 @@ class AuthService(object):
     def validate_auth_token(self, **kwargs):
         try:
             return self.mongodb_handler.validate_auth_token(**kwargs)
+        except:
+            raise
+
+@syringe.provides('share-service')
+class ShareService(object):
+    """
+    The service layer for :class:`MongoDbHandler.`
+    """
+
+    mongodb_handler = syringe.inject('mongodb-handler')
+
+    def create_share_repo(self, **kwargs):
+        try:
+            return self.mongodb_handler.create_share_repo(**kwargs)
         except:
             raise
