@@ -522,7 +522,7 @@ class MongoDbHandler(object):
         try:
             dir_ = self.db['shared'].save(db_models.CustomModel(
                 user_id=kwargs['user_id'],
-                content_id=kwargs['content_id']
+                content_id=kwargs['content_id'],
                 dir_creation_date=datetime.datetime.now()
             ))
             return dir_
