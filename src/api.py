@@ -395,3 +395,22 @@ class CloneHandler(BaseHandler):
                 message='Copying data failed'
             )
         self.finish()
+
+class ShareHandler(BaseHandler):
+    share_service = syringe.inject('share-service')
+
+    @tornado.web.asynchronous
+    @authenticated_async
+    def post(self):
+        self.set_header('Content-Type', 'application/json')
+
+        data = tornado.escape.json_decode(self.request.body)
+        res = self.con_service.create_share_repo(**data)
+        if res:
+            self.write(json.dumps(res))
+        else:
+            self.send_error(
+                400,
+                message='Sharing data failed'
+            )
+        self.finish()

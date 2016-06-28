@@ -48,12 +48,13 @@ def init_services():
     services.FileService()
     services.AuthService()
     services.BinService()
+    services.ShareService()
 
 def init_db_handlers(app):
     db_handlers.MongoDbHandler(app)
 
 
-class Application(tornado.wsgi.WSGIApplication):
+class Application(tornado.web.Application):
     def __init__(self, **kwars):
         handlers = [
             url(r"/", api.BaseHandler),
@@ -65,13 +66,14 @@ class Application(tornado.wsgi.WSGIApplication):
             url(r"/api/file/([\w]+)", api.FileHandler),
             url(r"/api/file/data/([\w]+)/([\w]+)", api.FileDataHandler),
             url(r"/api/clone", api.CloneHandler),
-            url(r"/api/bin/([\w]+)", api.BinHandler)
+            url(r"/api/bin/([\w]+)", api.BinHandler),
+            url(r"/api/share", api.ShareHandler)
         ]
 
         settings = {
             'cookie_secret': self.gen_uniq_id(),
             'debug': False,
-            'autoreload': True
+            'autoreload': False
         }
 
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -88,13 +90,16 @@ class Application(tornado.wsgi.WSGIApplication):
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
-    sockets = tornado.netutil.bind_sockets(options.port, address=options.address)
-    # tornado.process.fork_processes(0) does not work on windows
+    # sockets = tornado.netutil.bind_sockets(options.port, address=options.address)
+    # tornado.process.fork_processes(0) # does not work on windows
     app = Application()
     init_services()
     init_db_handlers(app)
-    server = httpserver.HTTPServer(app)
-    server.add_sockets(sockets)
+    server = httpserver.HTTPServer(app, xheaders=True)
+
+    server.bind(options.port)
+    server.start(0)
+    # server.add_sockets(sockets)
 
     print('Web server is listing at :' + options.address + ':' + str(options.port))
     tornado.ioloop.IOLoop.instance().start()
