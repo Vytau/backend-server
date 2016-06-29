@@ -15,6 +15,7 @@ import tornado.ioloop
 import tornado.web
 from tornado import gen
 import traceback
+import os
 
 
 def custom_encoder(self, obj):
@@ -61,10 +62,13 @@ class BaseHandler(tornado.web.RequestHandler):
         super(BaseHandler, self).__init__(application, request)
 
     def set_default_headers(self):
-        self.set_header("Access-Control-Allow-Origin", self.request.headers['Origin'])
-        self.set_header("Access-Control-Allow-Credentials", "true")
-        self.set_header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Accept,Origin,Authorization")
+        if '/download' in self.request.uri:
+            print('Download')
+        else:
+            self.set_header("Access-Control-Allow-Origin", self.request.headers['Origin'])
+            self.set_header("Access-Control-Allow-Credentials", "true")
+            self.set_header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
+            self.set_header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Accept,Origin,Authorization")
 
     @tornado.web.asynchronous
     def options(self, *args, **kwargs):
@@ -382,7 +386,7 @@ class ShareHandler(BaseHandler):
     @tornado.web.asynchronous
     @authenticated_async
     def post(self, user_id):
-        self.set_header('Content-Type', 'application/json')
+        # self.set_header('Content-Type', 'application/json')
 
         data = tornado.escape.json_decode(self.request.body)
         user = self.user_service.get_user_by_email(data['email'])
@@ -394,7 +398,7 @@ class ShareHandler(BaseHandler):
         data['user_id'] = str(user['_id'])
         res = self.share_service.create_share_repo(**data)
         if res:
-            self.write(json.dumps(res))
+            self.write("Directory has been shared with {}".format(user['user_name']))
         else:
             self.send_error(
                 400,
@@ -410,3 +414,33 @@ class ShareHandler(BaseHandler):
         )
         self.write(json.dumps([c for c in content]))
         self.finish()
+
+class FileDownloadHandler(BaseHandler):
+    file_service = syringe.inject('file-service')
+    # @authenticated_async
+    def get(self, file_id):
+
+        file_ = self.file_service.get_file_by_file_id(file_id)
+        file_name = file_['file_name'] + '.txt'
+        _file_dir = os.path.abspath("")+"/src/tmp"
+        _file_path = "%s/%s" % (_file_dir, file_name)
+        tmp = open(_file_path, 'w')
+        tmp.write(file_['text'])
+        tmp.close()
+        # if not file_name or not os.path.exists(_file_path):
+        #     raise HTTPError(404)
+        self.set_header('Content-Type', 'application/force-download')
+        self.set_header('Content-Disposition', 'attachment; filename=%s' % file_name)
+        with open(_file_path, "rb") as f:
+            try:
+                while True:
+                    _buffer = f.read(4096)
+                    if _buffer:
+                        self.write(_buffer)
+                    else:
+                        f.close()
+                        self.finish()
+                        return
+            except:
+                raise HTTPError(404)
+        raise HTTPError(500)

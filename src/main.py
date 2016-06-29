@@ -67,7 +67,8 @@ class Application(tornado.web.Application):
             url(r"/api/file/data/([\w]+)/([\w]+)", api.FileDataHandler),
             url(r"/api/clone", api.CloneHandler),
             url(r"/api/bin/([\w]+)", api.BinHandler),
-            url(r"/api/share/([\w]+)", api.ShareHandler)
+            url(r"/api/share/([\w]+)", api.ShareHandler),
+            url(r"/api/download/([\w]+)", api.FileDownloadHandler)
         ]
 
         settings = {

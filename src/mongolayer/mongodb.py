@@ -540,7 +540,7 @@ class MongoDbHandler(object):
                 content_id=kwargs['content_id'],
                 dir_creation_date=datetime.datetime.now()
             ))
-            return dir_
+            return True
         except:
             print(traceback.format_exc())
             raise
