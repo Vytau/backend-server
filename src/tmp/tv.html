@@ -1,0 +1,32 @@
+
+<html>
+<body>
+
+	<iframe frameborder="0" marginheight="0" marginwidth="0" height="490"
+
+	src="http://sports4u.tv/frames/espnusa.php" name="iframe_a"
+
+	scrolling="no" width="100%">Your Browser Do not Support Iframe</iframe>
+<button type="button" onclick="myFunction()">Hide content of p</button>
+
+<script>
+	function myFunction() {
+    var frame=document.getElementsByTagName("iframe")[0];
+     var innerDoc = (frame.contentDocument)  ? frame.contentDocument  : frame.contentWindow.document;
+    // var a = document.getElementById("floatLayer1").style.display = "none";
+    // alert(a);
+    innerDoc.getElementById("ads-wrap").style.display = "none";
+    //
+    // var ta = document.getElementsByClassName("vertical");
+    // alert(ta);
+    // for(var i=0; i<ta.length; i++) {
+    //   ta[i].style.display = "none";
+    // }
+    // var ta2 = document.getElementsByClassName("cuadrado");
+    // for(var i=0; i<ta2.length; i++) {
+    //   ta2[i].style.display = "none";
+    // }
+  }
+</script>
+</body>
+</html>

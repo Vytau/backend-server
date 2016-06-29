@@ -421,14 +421,12 @@ class FileDownloadHandler(BaseHandler):
     def get(self, file_id):
 
         file_ = self.file_service.get_file_by_file_id(file_id)
-        file_name = file_['file_name'] + '.txt'
+        file_name = file_['file_name']
         _file_dir = os.path.abspath("")+"/src/tmp"
         _file_path = "%s/%s" % (_file_dir, file_name)
         tmp = open(_file_path, 'w')
         tmp.write(file_['text'])
         tmp.close()
-        # if not file_name or not os.path.exists(_file_path):
-        #     raise HTTPError(404)
         self.set_header('Content-Type', 'application/force-download')
         self.set_header('Content-Disposition', 'attachment; filename=%s' % file_name)
         with open(_file_path, "rb") as f:
@@ -444,3 +442,28 @@ class FileDownloadHandler(BaseHandler):
             except:
                 raise HTTPError(404)
         raise HTTPError(500)
+
+class UploadFileHandler(BaseHandler):
+
+    file_service = syringe.inject('file-service')
+    @authenticated_async
+    @tornado.web.asynchronous
+    def post(self, user_id, parent_id):
+        try:
+            self.set_header('Content-Type', 'application/json')
+            file1 = self.request.files['file'][0]
+
+            dir_ = self.file_service.create_new_file(
+                user_id=user_id,
+                file_name=file1['filename'],
+                text=file1['body'].decode("utf-8"),
+                parent_dir_id=parent_id,
+                contributors=['']
+            )
+            if dir_:
+                self.write(json.dumps(dir_))
+        except:
+            self.send_error(
+                400,
+                message='File upload failed! kindly check your file for errors and try again.'
+            )
