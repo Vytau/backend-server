@@ -286,6 +286,22 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def list_content_by_content_ids(self, lst_ids):
+        """
+        List content of given directory.
+        """
+        try:
+            content = self.db['content'].find({'$and': [{'_id':{'$in': lst_ids}},
+                                                    {'deleted': False}]})
+            if content:
+                return content
+            else:
+                return None
+
+        except:
+            print(traceback.format_exc())
+            raise
+
     def get_content_by_content_id(self, content_id):
         """
         List content of given directory.
@@ -515,7 +531,6 @@ class MongoDbHandler(object):
                 else:
                     self.copy_helper_file(c['content_id'],  new_con['content_id'])
 
-
     def create_share_repo(self, **kwargs):
         """
         """
@@ -526,6 +541,25 @@ class MongoDbHandler(object):
                 dir_creation_date=datetime.datetime.now()
             ))
             return dir_
+        except:
+            print(traceback.format_exc())
+            raise
+
+    def list_shared_content(self, **kwargs):
+        """
+        List shared content of given user.
+        """
+
+        user_id = kwargs['user_id']
+        try:
+            content = self.db['shared'].find({'user_id': str(user_id)})
+            con_req = ''
+            if content:
+                con_req = [ObjectId(c['content_id']) for c in content]
+                return self.list_content_by_content_ids(list(set(con_req)))
+            else:
+                return None
+
         except:
             print(traceback.format_exc())
             raise

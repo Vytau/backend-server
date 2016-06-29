@@ -215,3 +215,9 @@ class ShareService(object):
             return self.mongodb_handler.create_share_repo(**kwargs)
         except:
             raise
+
+    def list_shared_content(self, **kwargs):
+        try:
+            return self.mongodb_handler.list_shared_content(**kwargs)
+        except:
+            raise

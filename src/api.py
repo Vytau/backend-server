@@ -377,14 +377,22 @@ class CloneHandler(BaseHandler):
 
 class ShareHandler(BaseHandler):
     share_service = syringe.inject('share-service')
+    user_service = syringe.inject('user-service')
 
     @tornado.web.asynchronous
     @authenticated_async
-    def post(self):
+    def post(self, user_id):
         self.set_header('Content-Type', 'application/json')
 
         data = tornado.escape.json_decode(self.request.body)
-        res = self.con_service.create_share_repo(**data)
+        user = self.user_service.get_user_by_email(data['email'])
+        if not user:
+            self.send_error(
+                401,
+                message='File canot be shared User : {} does not exist'.format(data['email'])
+            )
+        data['user_id'] = str(user['_id'])
+        res = self.share_service.create_share_repo(**data)
         if res:
             self.write(json.dumps(res))
         else:
@@ -392,4 +400,13 @@ class ShareHandler(BaseHandler):
                 400,
                 message='Sharing data failed'
             )
+        self.finish()
+
+    @authenticated_async
+    def get(self, user_id):
+        self.set_header('Content-Type', 'application/json')
+        content = self.share_service.list_shared_content(
+            user_id=user_id
+        )
+        self.write(json.dumps([c for c in content]))
         self.finish()
