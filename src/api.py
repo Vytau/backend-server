@@ -92,7 +92,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def write_error(self, status_code, **kwargs):
         if 'message' not in kwargs:
-            kwargs['message'] = 'Unknown Error: '
+            kwargs['message'] = 'Done...! '
         self.write(kwargs['message'])
 
     @authenticated_async
