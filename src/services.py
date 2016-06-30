@@ -96,6 +96,12 @@ class ContentService(object):
         except:
             raise
 
+    def restore_content(self, cont_id):
+        try:
+            return self.mongodb_handler.restore_content(cont_id)
+        except:
+            raise
+
 @syringe.provides('bin-service')
 class BinService(object):
     """

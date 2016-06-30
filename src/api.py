@@ -240,6 +240,13 @@ class ContentHandler(BaseHandler):
         self.write(json.dumps([c for c in content]))
         self.finish()
 
+    @authenticated_async
+    def put(self, con_id, dumy):
+        self.set_header('Content-Type', 'application/json')
+        content = self.con_service.restore_content(con_id)
+        self.write(json.dumps(content))
+        self.finish()
+
 
 class BinHandler(BaseHandler):
     bin_service = syringe.inject('bin-service')
@@ -446,8 +453,8 @@ class FileDownloadHandler(BaseHandler):
 class UploadFileHandler(BaseHandler):
 
     file_service = syringe.inject('file-service')
-    @authenticated_async
-    @tornado.web.asynchronous
+    # @authenticated_async
+    # @tornado.web.asynchronous
     def post(self, user_id, parent_id):
         try:
             self.set_header('Content-Type', 'application/json')

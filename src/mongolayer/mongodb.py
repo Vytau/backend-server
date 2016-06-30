@@ -175,6 +175,29 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
+    def restore_content(self, con_id):
+        """
+        Delete content.
+        """
+        print(con_id)
+        try:
+            con = con = self.db['content'].update_one({
+                '_id': ObjectId(con_id)
+            }, {
+                '$set': {
+                    'deleted': False
+                }
+            })
+            if con:
+                f = self.get_content_by_content_id(str(con_id))
+                print(f)
+                return f
+            else:
+                return None
+        except:
+            print(traceback.format_exc())
+            raise
+
     def get_directory_by_dir_id(self, dir_id):
         """
         Get directory by dir id
