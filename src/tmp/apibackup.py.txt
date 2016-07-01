@@ -134,70 +134,6 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
-    def delete_directory_by_id(self, dir_id):
-        """
-        Delete given dir_.
-        """
-        try:
-            dir_ = self.db['directories'].update_one({
-                '_id': ObjectId(dir_id)
-            }, {
-                '$set': {
-                    'deleted': True
-                }
-            })
-            if dir_:
-                con = self.db['content'].update_one({
-                    'content_id': dir_id
-                }, {
-                    '$set': {
-                        'deleted': True
-                    }
-                })
-                return True
-            else:
-                return False
-        except:
-            print(traceback.format_exc())
-            raise
-
-    def delete_content(self, con_id):
-        """
-        Delete content.
-        """
-        try:
-            con = self.db['content'].remove({'content_id': con_id})
-            if con:
-                return True
-            else:
-                return False
-        except:
-            print(traceback.format_exc())
-            raise
-
-    def restore_content(self, con_id):
-        """
-        Delete content.
-        """
-        print(con_id)
-        try:
-            con = con = self.db['content'].update_one({
-                '_id': ObjectId(con_id)
-            }, {
-                '$set': {
-                    'deleted': False
-                }
-            })
-            if con:
-                f = self.get_content_by_content_id(str(con_id))
-                print(f)
-                return f
-            else:
-                return None
-        except:
-            print(traceback.format_exc())
-            raise
-
     def get_directory_by_dir_id(self, dir_id):
         """
         Get directory by dir id
@@ -241,7 +177,6 @@ class MongoDbHandler(object):
                 content_id=kwargs['content_id'],
                 name=kwargs['name'],
                 type=kwargs['type'],
-                deleted=False,
                 dir_creation_date=datetime.datetime.now()
             ))
             return dir_
@@ -279,43 +214,8 @@ class MongoDbHandler(object):
         dir_id = kwargs['dir_id']
         user_id = kwargs['user_id']
         try:
-            content = self.db['content'].find({'$and': [{'user_id': str(user_id)},
-                                                {'parent_id': str(dir_id)},
-                                                    {'parent_id': {'$ne': str(user_id)}},
-                                                        {'deleted': False}]})
-            if content:
-                return content
-            else:
-                return None
-
-        except:
-            print(traceback.format_exc())
-            raise
-
-    def list_deleted_content(self, **kwargs):
-        """
-        List content of given directory.
-        """
-        user_id = kwargs['user_id']
-        try:
             content = self.db['content'].find({'user_id': str(user_id)} and
-                                                    {'deleted': True})
-            if content:
-                return content
-            else:
-                return None
-
-        except:
-            print(traceback.format_exc())
-            raise
-
-    def list_content_by_content_ids(self, lst_ids):
-        """
-        List content of given directory.
-        """
-        try:
-            content = self.db['content'].find({'$and': [{'_id':{'$in': lst_ids}},
-                                                    {'deleted': False}]})
+                                                {'parent_id': str(dir_id)})
             if content:
                 return content
             else:
@@ -441,33 +341,6 @@ class MongoDbHandler(object):
             print(traceback.format_exc())
             raise
 
-    def delete_file_by_id(self, file_id):
-        """
-        Delete given file.
-        """
-        try:
-            file_ = self.db['files'].update_one({
-                '_id': ObjectId(file_id)
-            }, {
-                '$set': {
-                    'deleted': True
-                }
-            })
-            if file_:
-                con = self.db['content'].update_one({
-                    'content_id': file_id
-                }, {
-                    '$set': {
-                        'deleted': True
-                    }
-                })
-                return True
-            else:
-                return False
-        except:
-            print(traceback.format_exc())
-            raise
-
     def generate_aut_token(self, **kwargs):
         """
         Generate auth token for given user.
@@ -529,7 +402,23 @@ class MongoDbHandler(object):
         if 'File' in kwargs['type']:
             res = self.copy_helper_file(kwargs['content_id'],  kwargs['toPaste'])
         else:
+            # dir_ = self.get_directory_by_dir_id(kwargs['content_id'])
+            # dir_['parent_dir_id'] = kwargs['toPaste']
+            # dir_['user_id'] = dir_['owner_id']
             self.copy_helper_dir(kwargs['content_id'], kwargs['toPaste'])
+            # new_parent_dir = self.create_new_directory(**dir_)
+            # current = dir_
+            # # while True:
+            # content = self.list_content_by_dir_id(
+            #     dir_id=str(current['_id']),
+            #     user_id=current['owner_id']
+            # )
+            # if content:
+            #     for con in content:
+            #         if 'Directory' in con['type']:
+            #             new_con = self.copy_helper_dir(con['content_id'], str(new_parent_dir['content_id']))
+            #         else:
+            #             self.copy_helper_file(con['content_id'],  str(new_parent_dir['content_id']))
         return True
 
     def copy_helper_file(self, content_id, new_parent_id):
@@ -553,36 +442,3 @@ class MongoDbHandler(object):
                     self.copy_helper_dir(c['content_id'], new_con['content_id'])
                 else:
                     self.copy_helper_file(c['content_id'],  new_con['content_id'])
-
-    def create_share_repo(self, **kwargs):
-        """
-        """
-        try:
-            dir_ = self.db['shared'].save(db_models.CustomModel(
-                user_id=kwargs['user_id'],
-                content_id=kwargs['content_id'],
-                dir_creation_date=datetime.datetime.now()
-            ))
-            return True
-        except:
-            print(traceback.format_exc())
-            raise
-
-    def list_shared_content(self, **kwargs):
-        """
-        List shared content of given user.
-        """
-
-        user_id = kwargs['user_id']
-        try:
-            content = self.db['shared'].find({'user_id': str(user_id)})
-            con_req = ''
-            if content:
-                con_req = [ObjectId(c['content_id']) for c in content]
-                return self.list_content_by_content_ids(list(set(con_req)))
-            else:
-                return None
-
-        except:
-            print(traceback.format_exc())
-            raise
