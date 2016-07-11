@@ -2,7 +2,7 @@
 Backend-api
 ***********
 
-This project contains the prediction models for e-commerece.
+Rest api server for file sharing.
 
 Environment setup
 =================
